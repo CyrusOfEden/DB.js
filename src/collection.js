@@ -1,9 +1,10 @@
+import { EventEmitter } from 'events';
 import query from './query';
 import wrap from './wrap';
 
 const _data = Symbol();
 
-class Collection {
+class Collection extends EventEmitter {
   constructor(data, pkey = 'id') {
     this.options = { pkey };
     this.records = [];
@@ -14,6 +15,9 @@ class Collection {
   configure(fn) {
     fn(this.options);
     return this;
+  }
+  index(record) {
+    return this.indexes.pkey[record[this.options.pkey]];
   }
   buildIndexes() {
     const count = this[_data].length;
@@ -30,25 +34,46 @@ class Collection {
     this.buildIndexes();
     return this;
   }
-  update(record) {
-    const idx = this.indexes.pkey[record[this.options.pkey]];
-    if (idx === undefined) {
-      this.records[idx] = record;
+  add(record) {
+    if (this.index(record) === undefined) {
+      return;
     } else {
-      for (let prop in record) {
-        this.records[idx][prop] = record[prop];
-      }
+      this.indexes.pkey[record[this.options.pkey]] = (this.records.push(record) - 1);
+      this.emit('add', record);
+      return this.index(record);
     }
-    return this.record[idx];
+  }
+  update(params) {
+    const added = this.add(record);
+    if (added !== undefined) {
+      return added;
+    } else {
+      let record = this.records[this.index(record)];
+      for (let prop in params) {
+        record[prop] = params[prop];
+      }
+      this.emit('update', record);
+      this.emit('save', record);
+      return record;
+    }
   }
   save(record) {
-    const idx = this.indexes.pkey[record[this.options.pkey]];
-    if (idx === undefined) {
-      this.indexes.pkey[record[this.options.pkey]] = (this.records.push(record) - 1);
+    return this.update(record);
+  }
+  remove(record) {
+    return this.destroy(record.id);
+  }
+  destroy(id) {
+    const index = this.index({ id });
+    if (index) {
+      const record = this.records[record];
+      this.records.splice(index, 1);
+      delete this.indexes.pkey[id];
+      this.emit('destroy', record);
+      return true;
     } else {
-      this.records[idx] = record;
+      return false;
     }
-    return this.records[idx];
   }
   clear() {
     this.queries = [];
