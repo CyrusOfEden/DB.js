@@ -6,6 +6,7 @@ const _data = Symbol();
 
 class Collection extends EventEmitter {
   constructor(data, pkey = 'id') {
+    super();
     this.options = { pkey };
     this.records = [];
     this.indexes = { pkey: {} };
