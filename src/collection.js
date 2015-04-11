@@ -30,6 +30,17 @@ class Collection {
     this.buildIndexes();
     return this;
   }
+  update(record) {
+    const idx = this.indexes.pkey[record[this.options.pkey]];
+    if (idx === undefined) {
+      this.records[idx] = record;
+    } else {
+      for (let prop in record) {
+        this.records[idx][prop] = record[prop];
+      }
+    }
+    return this.record[idx];
+  }
   save(record) {
     const idx = this.indexes.pkey[record[this.options.pkey]];
     if (idx === undefined) {
@@ -37,20 +48,20 @@ class Collection {
     } else {
       this.records[idx] = record;
     }
-    return this;
+    return this.records[idx];
   }
   clear() {
     this.queries = [];
     return this;
   }
   count() {
-    return this.records.length;
+    return wrap(this.records.length);
   }
   all() {
     return wrap(this.records);
   }
-  pluck(props) {
-    this.queries.push([null, query.pluck(props)]);
+  pluck(...props) {
+    this.queries.push([null, query.pluck(...props)]);
     return this;
   }
   find(id) {
