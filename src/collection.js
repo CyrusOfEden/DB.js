@@ -9,7 +9,7 @@ class Collection extends EventEmitter {
     this.records = [];
     this.indexes = { pkey: {} };
     this.queries = [];
-    this.buildIndexes(data);
+    this.buildIndexes(data || []);
   }
   configure(fn) {
     fn(this.options);
