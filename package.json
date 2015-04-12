@@ -1,6 +1,6 @@
 {
   "name": "db-js",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Efficient collection querying interface.",
   "main": "lib/index.js",
   "scripts": {

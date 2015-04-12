@@ -2,16 +2,14 @@ import { EventEmitter } from 'events';
 import query from './query';
 import wrap from './wrap';
 
-const _data = Symbol();
-
 class Collection extends EventEmitter {
   constructor(data, pkey = 'id') {
     super();
     this.options = { pkey };
     this.records = [];
     this.indexes = { pkey: {} };
-    this[_data] = (data || []);
     this.queries = [];
+    this.buildIndexes(data);
   }
   configure(fn) {
     fn(this.options);
@@ -20,19 +18,18 @@ class Collection extends EventEmitter {
   index(record) {
     return this.indexes.pkey[record[this.options.pkey]];
   }
-  buildIndexes() {
-    const count = this[_data].length;
+  buildIndexes(data) {
+    const count = data.length;
     this.records = Array(count);
     for (let i = 0; i < count; i++) {
-      let record = this[_data][i];
+      let record = data[i];
       this.records[i] = record;
       this.indexes.pkey[record[this.options.pkey]] = i;
     }
     return this;
   }
   set(data) {
-    this[_data] = data;
-    this.buildIndexes();
+    this.buildIndexes(data);
     return this;
   }
   add(record) {
