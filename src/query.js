@@ -1,4 +1,4 @@
-export default const query = {
+const query = {
   where(q) {
     return function(obj) {
       for (let param in q) {
@@ -31,3 +31,5 @@ export default const query = {
     }
   }
 };
+
+export default query;

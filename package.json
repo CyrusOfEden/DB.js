@@ -1,8 +1,8 @@
 {
   "name": "db-js",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Efficient collection querying interface.",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
