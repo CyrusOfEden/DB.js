@@ -19,7 +19,8 @@ DB.collection('people').configure((options) => {
 // Set the collection's data
 let people = [
   { id: 1, name: "Kash", color: "red" },
-  { id: 2, name: "Sanjna", color: "red" }
+  { id: 2, name: "Sanjna", color: "red" },
+  { id: 3, name: "Saily", color: "purple" }
 ];
 DB.collection('people').set(people);
 
@@ -28,13 +29,14 @@ DB.collection('people').set(people);
 DB.collection('people').find(1).valueOf();
 
 // Find a record by property value
-// returns [{ id: 2, name: "Sanjna", color: "red" }]
+// returns { id: 2, name: "Sanjna", color: "red" }
 DB.collection('people').findBy({ name: "Sanjna" }).valueOf();
 
 // Run a where-like query
 // returns [
 //   { id: 1, name: "Kash", color: "red" },
-//   { id: 2, name: "Sanjna", color: "red" }
+//   { id: 2, name: "Sanjna", color: "red" },
+//   { id: 3, name: "Saily", color: "purple" }
 // ]
 DB.collection('people').where({ color: "red" }).valueOf();
 // The #whereNot method is also available, where records that
@@ -54,6 +56,7 @@ DB.collection('people').remove({ id: 2 });
 
 // Remove a record by primary key
 DB.collection('people').destroy(1);
+DB.collection('people').destroy(3);
 
 // Get all records
 DB.collection('people').all().valueOf();

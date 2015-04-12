@@ -33,7 +33,7 @@ class Collection extends EventEmitter {
     return this;
   }
   add(record) {
-    if (this.index(record) === undefined) {
+    if (this.index(record) !== undefined) {
       return;
     } else {
       this.indexes.pkey[record[this.options.pkey]] = (this.records.push(record) - 1);
@@ -42,11 +42,11 @@ class Collection extends EventEmitter {
     }
   }
   update(params) {
-    const added = this.add(record);
+    const added = this.add(params);
     if (added !== undefined) {
       return added;
     } else {
-      let record = this.records[this.index(record)];
+      let record = this.records[this.index(params)];
       for (let prop in params) {
         record[prop] = params[prop];
       }
@@ -78,63 +78,66 @@ class Collection extends EventEmitter {
     return this;
   }
   count() {
-    return wrap(this.records.length);
+    if (this.queries.length) {
+      this.queries.push([null, query.identity(), 'count']);
+    } else {
+      return wrap(this.records.length);
+    }
+    return this;
   }
   all() {
     return wrap(this.records);
   }
   pluck(...props) {
-    this.queries.push([null, query.pluck(...props)]);
+    this.queries.push([null, query.pluck(...props), 'pluck']);
     return this;
   }
   find(id) {
     return wrap(this.records[this.indexes.pkey[id]] || null);
   }
   findBy(q) {
-    this.queries.push([1, query.where(q)]);
+    this.queries.push([1, query.where(q), 'findBy']);
     return this;
   }
   where(q) {
-    this.queries.push([null, query.where(q)]);
+    this.queries.push([null, query.where(q), 'where']);
     return this;
   }
   limit(n) {
-    this.queries.push([n, (obj) => obj]);
+    this.queries.push([n, query.identity(), 'limit']);
     return this;
   }
   whereNot(q) {
-    this.queries.push([null, query.whereNot(q)]);
+    this.queries.push([null, query.whereNot(q), 'whereNot']);
     return this;
   }
   exec() {
-    let data = this.records;
     let res = [];
-    let limit = this.count();
+    let limit = this.records.length;
     let queries = [];
-    for (let i = 0; i < this.queries.length; i++) {
+    for (let i = 0, len = this.queries.length; i < len; i++) {
       let q = this.queries[i];
       if (q[0] !== null && q[0] < limit) limit = q[0];
-      queries.push(q[1]);
+      queries.push(q.slice(1));
     }
     if (limit === 0) return [];
-    for (let id in data) {
-      let pass = true;
-      let prev = data[id];
-      let curr = null;
-      for (let i = 0; i < queries.length; i++) {
-        let fn = queries[i];
-        curr = fn(prev);
-        if (curr) {
-          prev = curr;
-        } else {
-          pass = false;
-          break;
-        }
+    for (let i = 0, len = this.records.length; i < len; i++) {
+      let obj = this.records[i];
+      for (let n = 0; n < queries.length; n++) {
+        obj = queries[n][0](obj);
+        if (obj === undefined) break;
       }
-      if (pass) res.push(prev);
+      if (obj) res.push(obj);
       if (res.length === limit) break;
     }
-    return res;
+    switch (queries[queries.length - 1][1]) {
+      case 'findBy':
+        return res[0];
+      case 'count':
+        return res.length;
+      default:
+        return res;
+    }
   }
   valueOf() {
     return this.exec();
